@@ -1,0 +1,36 @@
+services:
+    graylog:
+        image: "graylog/graylog:4.3.2"
+        depends_on:
+            - elasticsearch
+            - mongodb
+        entrypoint: "/usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh"
+        environment:
+            GRAYLOG_PASSWORD_SECRET: somepasswordpepper
+            # to generate a password hash, type: echo -n admin | shasum -a 256
+            GRAYLOG_ROOT_PASSWORD_SHA2: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+            GRAYLOG_HTTP_BIND_ADDRESS: "0.0.0.0:9002"
+            GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9002/"
+            GRAYLOG_ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+            GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
+        ports:
+            - "5044:5044/tcp"   # Beats
+            - "5140:5140/udp"   # Syslog
+            - "5141:5141/tcp"   # Syslog
+            - "5555:5555/tcp"   # RAW TCP
+            - "5556:5556/udp"   # RAW TCP
+            - "9002:9002/tcp"   # Server API
+            - "12201:12201/tcp" # GELF TCP
+            - "12202:12202/udp" # GELF UDP
+            - "13301:13301/tcp" # Forwarder data
+            - "13302:13302/tcp" # Forwarder config
+        volumes:
+            - "./graylog_data:/usr/share/graylog/data/data"
+            - "./graylog_journal:/usr/share/graylog/data/journal"
+        restart: "on-failure"
+        networks:
+            - symfony
+
+networks:
+  symfony:
+    name: symfony
