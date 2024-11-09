@@ -1,0 +1,14 @@
+services:
+    varnish:
+        container_name: marek_varnish
+        depends_on:
+            - nginx
+        build: ./infra/varnish
+        links:
+            - nginx
+        ports:
+            - 8080:6081
+
+networks:
+    symfony:
+        name: symfony
