@@ -1,0 +1,30 @@
+services:
+    traefik:
+        image: traefik:latest
+
+        command:
+            - --api.insecure=true
+            - --providers.docker=true
+            - --providers.docker.exposedByDefault=false
+            - --entrypoints.web.address=:80
+            - --entrypoints.websecure.address=:443                          # ← ajout entrypoint HTTPS
+            - --entrypoints.web.http.redirections.entrypoint.to=websecure   # ← redirect HTTP → HTTPS
+            - --entrypoints.web.http.redirections.entrypoint.scheme=https
+            - --serversTransport.insecureSkipVerify=true                    # ← FrankenPHP utilise un cert self-signed en interne
+            - --serversTransport.forwardingTimeouts.idleConnTimeout=0s
+
+        ports:
+            - "80:80"
+            - "443:443"                                                      # ← ajout
+            - "8080:8080"
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+
+        networks:
+            - proxy-net
+
+networks:
+    proxy-net:
+        name: proxy-net
+        external: true
